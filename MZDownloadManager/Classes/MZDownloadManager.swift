@@ -171,7 +171,7 @@ extension MZDownloadManager: URLSessionDelegate {
     func URLSession(_ session: Foundation.URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         for (index, downloadModel) in self.downloadingArray.enumerated() {
             if downloadTask.isEqual(downloadModel.task) {
-                DispatchQueue.main.async(execute: { () -> Void in
+                DispatchQueue.main.sync(execute: { () -> Void in
 
                     let receivedBytesCount = Double(downloadTask.countOfBytesReceived)
                     let totalBytesCount = Double(downloadTask.countOfBytesExpectedToReceive)
@@ -232,7 +232,7 @@ extension MZDownloadManager: URLSessionDelegate {
                         try fileManager.moveItem(at: location, to: fileURL)
                     } catch let error as NSError {
                         debugPrint("Error while moving downloaded file to destination path:\(error)")
-                        DispatchQueue.main.async(execute: { () -> Void in
+                        DispatchQueue.main.sync(execute: { () -> Void in
                             self.delegate?.downloadRequestDidFailedWithError?(error, downloadModel: downloadModel, index: index)
                         })
                     }
@@ -259,7 +259,7 @@ extension MZDownloadManager: URLSessionDelegate {
         debugPrint("task id: \(task.taskIdentifier)")
         /***** Any interrupted tasks due to any reason will be populated in failed state after init *****/
 
-        DispatchQueue.main.async {
+        DispatchQueue.main.sync {
             if (error?.userInfo[NSURLErrorBackgroundTaskCancelledReasonKey] as? NSNumber)?.intValue == NSURLErrorCancelledReasonUserForceQuitApplication || (error?.userInfo[NSURLErrorBackgroundTaskCancelledReasonKey] as? NSNumber)?.intValue == NSURLErrorCancelledReasonBackgroundUpdatesDisabled {
 
                 let downloadTask = task as! URLSessionDownloadTask
@@ -272,7 +272,7 @@ extension MZDownloadManager: URLSessionDelegate {
                 downloadModel.status = TaskStatus.failed.description()
                 downloadModel.task = downloadTask
                 downloadModel.startTime = Date()
-                
+
                 let resumeData = error?.userInfo[NSURLSessionDownloadTaskResumeData] as? Data
 
                 var newTask = downloadTask
@@ -335,7 +335,7 @@ extension MZDownloadManager: URLSessionDelegate {
     public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
 
         if let backgroundCompletion = self.backgroundSessionCompletionHandler {
-            DispatchQueue.main.async(execute: {
+            DispatchQueue.main.sync(execute: {
                 backgroundCompletion()
             })
         }
